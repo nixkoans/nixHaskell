@@ -1,10 +1,9 @@
+with (import <nixpkgs> {}).pkgs;
 let
-  nixpkgs = import <nixpkgs> {};
-  allPkgs = nixpkgs // pkgs;
-  callPackage = path: overrides:
-    let f = import path;
-    in f ((builtins.intersectAttrs (builtins.functionArgs f) allPkgs) // overrides);
-  pkgs = with nixpkgs; {
-    thisPackage = haskellPackages.callPackage (import ./default.nix) {};
-  };
-in pkgs
+  ghc = haskell.packages.ghc7101.ghcWithPackages
+          (pkgs: with pkgs; [ aeson lens monad-par ]);
+in stdenv.mkDerivation {
+  name = "nixHaskell";
+  buildInputs = [ ghc ];
+  shellHook = "eval $(grep export ${ghc}/bin/ghc)";
+}
